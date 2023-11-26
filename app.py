@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from datetime import datetime
 import seaborn as sns
 from wordcloud import WordCloud
@@ -31,15 +31,15 @@ def load_data(start_date=None, end_date=None):
     return data
 
 # Function to generate a word cloud from the request descriptions
-def generate_word_cloud(data, column='description'):
-    text = ' '.join(description for description in data[column].astype(str))
-    wordcloud = WordCloud(width=800, height=400, background_color ='white').generate(text)
+# def generate_word_cloud(data, column='description'):
+#     text = ' '.join(description for description in data[column].astype(str))
+#     wordcloud = WordCloud(width=800, height=400, background_color ='white').generate(text)
     
-    # Display the generated WordCloud
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    st.pyplot(plt) 
+#     # Display the generated WordCloud
+#     plt.figure(figsize=(10, 5))
+#     plt.imshow(wordcloud, interpolation='bilinear')
+#     plt.axis('off')
+#     st.pyplot(plt) 
 
 # Function to calculate average response time
 def calculate_avg_response_time(data):
@@ -184,7 +184,8 @@ def main():
 
 
     if st.checkbox('Show Word Cloud'):
-        generate_word_cloud(data, column='description')
+        # generate_word_cloud(data, column='description')
+        st.write("In progress... Streamlit doesn't support matplotlib yet.")
 if __name__ == "__main__":
     main()
 #check
