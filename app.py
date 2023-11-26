@@ -4,7 +4,6 @@ import numpy as np
 import pydeck as pdk
 
 from datetime import datetime
-from wordcloud import WordCloud
 import altair as alt
 
 # Function to load data
