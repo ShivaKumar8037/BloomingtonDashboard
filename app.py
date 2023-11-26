@@ -28,6 +28,44 @@ def load_data(start_date=None, end_date=None):
 
     return data
 
+def plot_service_requests_over_time(data):
+    # Prepare the data
+    data['month_year'] = data['requested_datetime'].dt.to_period('M')
+    monthly_requests = data.groupby('month_year').size().reset_index(name='count')
+    monthly_requests['month_year'] = monthly_requests['month_year'].dt.strftime('%Y-%m')
+
+    # Create a line chart
+    line_chart = alt.Chart(monthly_requests).mark_line().encode(
+        x=alt.X('month_year:T', title='Month/Year'),
+        y=alt.Y('count:Q', title='Number of Requests')
+    ).properties(
+        title='Service Requests Over Time'
+    )
+
+    return line_chart
+
+def plot_avg_response_time_by_month(data):
+    # Prepare the data
+    data['month'] = data['requested_datetime'].dt.month_name()
+    avg_response_time_by_month = data.groupby('month')['resolution_days'].mean().reset_index()
+
+    # Sort by month order
+    months_order = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                    'August', 'September', 'October', 'November', 'December']
+    avg_response_time_by_month['month'] = pd.Categorical(avg_response_time_by_month['month'], categories=months_order, ordered=True)
+    avg_response_time_by_month = avg_response_time_by_month.sort_values('month')
+
+    # Create a bar chart
+    bar_chart = alt.Chart(avg_response_time_by_month).mark_bar().encode(
+        x=alt.X('month:O', title='Month'),
+        y=alt.Y('resolution_days:Q', title='Average Response Time (Days)')
+    ).properties(
+        title='Average Response Time by Month'
+    )
+
+    return bar_chart
+
+
 # Function to generate a word cloud from the request descriptions
 # def generate_word_cloud(data, column='description'):
 #     text = ' '.join(description for description in data[column].astype(str))
@@ -150,6 +188,8 @@ def main():
 
     else:
         st.write("No data available for the selected filters.")
+
+    
     # Summary statistics
     st.header("Summary Statistics")
 
@@ -164,6 +204,16 @@ def main():
     # Number of unique request types
     unique_request_types = data['service_name'].nunique()
     st.metric(label="Unique Request Types", value=unique_request_types)
+
+
+    st.header("Temporal Analysis")
+# Plot the service requests over time
+    service_requests_line_chart = plot_service_requests_over_time(data)
+    st.altair_chart(service_requests_line_chart, use_container_width=True)
+
+    # Plot the average response time by month
+    avg_response_time_bar_chart = plot_avg_response_time_by_month(data)
+    st.altair_chart(avg_response_time_bar_chart, use_container_width=True)
 
     # Interactive bar chart of number of requests by service type
     st.header("Number of Requests by Service Type")
