@@ -55,25 +55,11 @@ def main():
         data = data[data['service_name'].isin(request_type)]
     data = data[(data['requested_datetime'].dt.date >= start_date) & (data['requested_datetime'].dt.date <= end_date)]
 
-    # Display summary statistics
+    # Display 
     if not data.empty:
 
         # color_mapping = create_color_mapping(data['service_name'])
         # data['color'] = data['service_name'].apply(lambda x: color_mapping[x])
-
-        st.header("Summary Statistics")
-
-        # Total number of requests
-        total_requests = len(data)
-        st.metric(label="Total Number of Requests", value=total_requests)
-
-        # Average response time (in days)
-        avg_response_time = calculate_avg_response_time(data)
-        st.metric(label="Average Response Time (Days)", value=f"{avg_response_time:.2f}")
-
-        # Number of unique request types
-        unique_request_types = data['service_name'].nunique()
-        st.metric(label="Unique Request Types", value=unique_request_types)
 
         #Tooltip for map
         data['requested_datetime_str'] = data['requested_datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
@@ -106,7 +92,7 @@ def main():
                     data=data,
                     get_position=['long', 'lat'],
                     get_color=[200, 30, 0, 160],
-                    get_radius=100,
+                    get_radius=50,
                     pickable = True
                 ),
             ],
@@ -114,6 +100,21 @@ def main():
         ))
     else:
         st.write("No data available for the selected filters.")
+
+    # Summary statistics
+    st.header("Summary Statistics")
+
+    # Total number of requests
+    total_requests = len(data)
+    st.metric(label="Total Number of Requests", value=total_requests)
+
+    # Average response time (in days)
+    avg_response_time = calculate_avg_response_time(data)
+    st.metric(label="Average Response Time (Days)", value=f"{avg_response_time:.2f}")
+
+    # Number of unique request types
+    unique_request_types = data['service_name'].nunique()
+    st.metric(label="Unique Request Types", value=unique_request_types)
 
 if __name__ == "__main__":
     main()
