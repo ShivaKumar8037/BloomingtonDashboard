@@ -4,6 +4,8 @@ import numpy as np
 import pydeck as pdk
 import matplotlib.pyplot as plt
 from datetime import datetime
+import seaborn as sns
+from wordcloud import WordCloud
 
 # Function to load data
 @st.cache_data
@@ -14,6 +16,16 @@ def load_data():
     data['updated_datetime'] = pd.to_datetime(data['updated_datetime'])
     data['closed_date'] = pd.to_datetime(data['closed_date'])
     return data
+
+# Function to generate a word cloud from the request descriptions
+# def generate_word_cloud(data, column='description'):
+#     text = ' '.join(description for description in data[column].astype(str))
+#     wordcloud = WordCloud(width=800, height=400, background_color ='white').generate(text)
+    
+#     # Display the generated WordCloud
+#     plt.figure(figsize=(10, 5))
+#     plt.imshow(wordcloud, interpolation='bilinear')
+#     plt.axis('off')
 
 # Function to calculate average response time
 def calculate_avg_response_time(data):
@@ -116,5 +128,13 @@ def main():
     unique_request_types = data['service_name'].nunique()
     st.metric(label="Unique Request Types", value=unique_request_types)
 
+    # Interactive bar chart of number of requests by service type
+    st.header("Interactive Number of Requests by Service Type")
+    requests_by_service_type = data['service_name'].value_counts()
+    st.bar_chart(requests_by_service_type)
+
+    # if st.checkbox('Show Word Cloud of Request Descriptions'):
+    #     st.header("Word Cloud of Service Request Descriptions")
+    #     generate_word_cloud(data)
 if __name__ == "__main__":
     main()
