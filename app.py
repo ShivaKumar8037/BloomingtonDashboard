@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-# import matplotlib.pyplot as plt
+
 from datetime import datetime
-# import seaborn as sns
 from wordcloud import WordCloud
 import altair as alt
 
