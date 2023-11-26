@@ -17,6 +17,7 @@ def load_data(start_date=None, end_date=None):
     data['requested_datetime'] = pd.to_datetime(data['requested_datetime'])
     data['updated_datetime'] = pd.to_datetime(data['updated_datetime'])
     data['closed_date'] = pd.to_datetime(data['closed_date'])
+    data['resolution_days'] = (data['closed_date'] - data['requested_datetime']).dt.days
 
     # Filter data based on the date range provided
     if start_date is not None and end_date is not None:
@@ -85,51 +86,72 @@ def main():
         data = data[data['service_name'].isin(request_type)]
     data = data[(data['requested_datetime'].dt.date >= start_date) & (data['requested_datetime'].dt.date <= end_date)]
 
+    #Heatmap
+    st.sidebar.title("Map Type")
+    use_heatmap = st.sidebar.checkbox("Show Heatmap")
     # Display 
     if not data.empty:
-
-        
-
-        #Tooltip for map
+        # Tooltip configuration for the map
         data['requested_datetime_str'] = data['requested_datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
         data['closed_date_str'] = data['closed_date'].dt.strftime('%Y-%m-%d %H:%M:%S')
         tooltip = {
-        "html": "<b>Service Name:</b> {service_name}<br/>"
-                "<b>Description:</b> {description}<br/>"
-                "<b>Status:</b> {status_description}<br/>"
-                "<b>Requested:</b> {requested_datetime_str}<br/>"
-                "<b>Closed:</b> {closed_date_str}",
-        "style": {
-            "backgroundColor": "steelblue",
-            "color": "white"
+            "html": "<b>Service Name:</b> {service_name}<br/>"
+                    "<b>Description:</b> {description}<br/>"
+                    "<b>Status:</b> {status_description}<br/>"
+                    "<b>Requested:</b> {requested_datetime_str}<br/>"
+                    "<b>Closed:</b> {closed_date_str}",
+            "style": {
+                "backgroundColor": "steelblue",
+                "color": "white"
+            }
         }
-    }
-        
 
-        # Map rendering
+        # Define layers based on heatmap checkbox
+        layers = []
+        if use_heatmap:
+            # Create a heatmap layer if the checkbox is checked
+            heatmap_layer = pdk.Layer(
+                "HeatmapLayer",
+                data=data,
+                get_position=['long', 'lat'],
+                opacity=0.5,
+                get_weight="resolution_days",  # Weight based on resolution days
+                color_range=[
+            [0, 0, 255],     # Blue for lowest values
+            [0, 255, 0],     # Green for low to medium values
+            [255, 255, 0],   # Yellow for medium to high values
+            [255, 0, 0]      # Red for the highest values
+        ],
+        threshold=0.05,    # Fine-tune this for your data
+        radius_pixels=30,
+            )
+            layers.append(heatmap_layer)
+        else:
+            # Create a scatterplot layer if the checkbox is not checked
+            scatterplot_layer = pdk.Layer(
+                'ScatterplotLayer',
+                data=data,
+                get_position=['long', 'lat'],
+                get_color=[200, 30, 0, 160],
+                get_radius=50,
+                pickable=True
+            )
+            layers.append(scatterplot_layer)
+
+        # Map rendering with layers
         st.pydeck_chart(pdk.Deck(
             map_style='mapbox://styles/mapbox/streets-v12',
             initial_view_state=pdk.ViewState(
                 latitude=data['lat'].mean(),
                 longitude=data['long'].mean(),
                 zoom=11,
-                
             ),
-            layers=[
-                pdk.Layer(
-                    'ScatterplotLayer',
-                    data=data,
-                    get_position=['long', 'lat'],
-                    get_color=[200, 30, 0, 160],
-                    get_radius=50,
-                    pickable = True
-                ),
-            ],
+            layers=layers,  # Use layers list here
             tooltip=tooltip
         ))
+
     else:
         st.write("No data available for the selected filters.")
-
     # Summary statistics
     st.header("Summary Statistics")
 
