@@ -28,19 +28,31 @@ def load_data(start_date=None, end_date=None):
 
     return data
 
-def plot_service_requests_over_time(data):
+def plot_service_requests_over_time(data, selected_types=None):
     # Prepare the data
-    data['month_year'] = data['requested_datetime'].dt.to_period('M')
-    monthly_requests = data.groupby('month_year').size().reset_index(name='count')
-    monthly_requests['month_year'] = monthly_requests['month_year'].dt.strftime('%Y-%m')
-
+    data['month_year'] = data['requested_datetime'].dt.to_period('M').dt.to_timestamp()
+    
+    # If specific service types are selected, filter the data
+    if selected_types:
+        data = data[data['service_name'].isin(selected_types)]
+    
+    # Aggregate data - if specific types are selected, group by type; otherwise, sum all requests
+    if selected_types and len(selected_types) > 1:
+        service_monthly = data.groupby(['month_year', 'service_name']).size().reset_index(name='count')
+        color_scale = alt.Color('service_name:N', legend=alt.Legend(title="Service Type"))
+    else:
+        service_monthly = data.groupby('month_year').size().reset_index(name='count')
+        color_scale = alt.value('steelblue')  # Single color if no specific types are selected
+    
     # Create a line chart
-    line_chart = alt.Chart(monthly_requests).mark_line().encode(
+    line_chart = alt.Chart(service_monthly).mark_line().encode(
         x=alt.X('month_year:T', title='Month/Year'),
-        y=alt.Y('count:Q', title='Number of Requests')
+        y=alt.Y('count:Q', title='Number of Requests'),
+        color=color_scale,
+        tooltip=['month_year:T', 'count:Q'] + (['service_name:N'] if selected_types and len(selected_types) > 1 else [])
     ).properties(
         title='Service Requests Over Time'
-    )
+    ).interactive()
 
     return line_chart
 
@@ -207,10 +219,14 @@ def main():
 
 
     st.header("Temporal Analysis")
+    selected_service_types = st.multiselect(
+        'Select Service Types', 
+        options=data['service_name'].unique(),
+        default=None
+    )
 # Plot the service requests over time
-    service_requests_line_chart = plot_service_requests_over_time(data)
+    service_requests_line_chart = plot_service_requests_over_time(data, selected_service_types)
     st.altair_chart(service_requests_line_chart, use_container_width=True)
-
     # Plot the average response time by month
     avg_response_time_bar_chart = plot_avg_response_time_by_month(data)
     st.altair_chart(avg_response_time_bar_chart, use_container_width=True)
