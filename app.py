@@ -6,26 +6,39 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import seaborn as sns
 from wordcloud import WordCloud
+import altair as alt
 
 # Function to load data
 @st.cache_data
-def load_data():
+def load_data(start_date=None, end_date=None):
+    # Load the dataset
     data = pd.read_csv('Cleaned_Open311.csv')
-    # # Convert datetime fields to datetime objects
+    # Convert datetime fields to datetime objects
     data['requested_datetime'] = pd.to_datetime(data['requested_datetime'])
     data['updated_datetime'] = pd.to_datetime(data['updated_datetime'])
     data['closed_date'] = pd.to_datetime(data['closed_date'])
+
+    # Filter data based on the date range provided
+    if start_date is not None and end_date is not None:
+        data = data[(data['requested_datetime'].dt.date >= start_date) & 
+                    (data['requested_datetime'].dt.date <= end_date)]
+    else:
+        # Default to loading data from the current year
+        current_year = datetime.now().year
+        data = data[data['requested_datetime'].dt.year == current_year]
+
     return data
 
 # Function to generate a word cloud from the request descriptions
-# def generate_word_cloud(data, column='description'):
-#     text = ' '.join(description for description in data[column].astype(str))
-#     wordcloud = WordCloud(width=800, height=400, background_color ='white').generate(text)
+def generate_word_cloud(data, column='description'):
+    text = ' '.join(description for description in data[column].astype(str))
+    wordcloud = WordCloud(width=800, height=400, background_color ='white').generate(text)
     
-#     # Display the generated WordCloud
-#     plt.figure(figsize=(10, 5))
-#     plt.imshow(wordcloud, interpolation='bilinear')
-#     plt.axis('off')
+    # Display the generated WordCloud
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    st.pyplot(plt) 
 
 # Function to calculate average response time
 def calculate_avg_response_time(data):
@@ -35,19 +48,24 @@ def calculate_avg_response_time(data):
     response_time = (filtered_data['closed_date'] - filtered_data['requested_datetime']).dt.days
     return response_time.mean()
 
-# def create_color_mapping(data_column):
-#     unique_values = data_column.unique()
-#     # Create a color palette with a distinct color for each unique value
-#     colors = plt.cm.tab20(np.linspace(0, 1, len(unique_values)))
-#     color_mapping = {value: colors[i].tolist() for i, value in enumerate(unique_values)}
-#     # Convert colors from 0-1 range to 0-255 range and return mapping
-#     return {key: [int(color * 255) for color in value] for key, value in color_mapping.items()}
 
 # Main app
 def main():
     st.title("City of Bloomington Service Request Dashboard")
 
-    data = load_data()
+    # Sidebar for data loading options
+    st.sidebar.title("Data Loading Options")
+    min_date = datetime(1995, 1, 1)
+    max_date = datetime.now()
+
+    # Set default start date to the beginning of the current year
+    default_start_date = datetime(datetime.now().year, 1, 1)
+
+    start_date = st.sidebar.date_input("Start Date", value=default_start_date, min_value=min_date, max_value=max_date, key='start_date')
+    end_date = st.sidebar.date_input("End Date", value=max_date, min_value=min_date, max_value=max_date, key='end_date')
+
+    # Load data based on selected date range or default to the current year
+    data = load_data(start_date, end_date)
 
     # Sidebar for filters
     st.sidebar.title("Filters")
@@ -70,8 +88,7 @@ def main():
     # Display 
     if not data.empty:
 
-        # color_mapping = create_color_mapping(data['service_name'])
-        # data['color'] = data['service_name'].apply(lambda x: color_mapping[x])
+        
 
         #Tooltip for map
         data['requested_datetime_str'] = data['requested_datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
@@ -96,7 +113,7 @@ def main():
                 latitude=data['lat'].mean(),
                 longitude=data['long'].mean(),
                 zoom=11,
-                pitch=50,
+                
             ),
             layers=[
                 pdk.Layer(
@@ -129,12 +146,23 @@ def main():
     st.metric(label="Unique Request Types", value=unique_request_types)
 
     # Interactive bar chart of number of requests by service type
-    st.header("Interactive Number of Requests by Service Type")
-    requests_by_service_type = data['service_name'].value_counts()
-    st.bar_chart(requests_by_service_type)
+    st.header("Number of Requests by Service Type")
+    requests_by_service_type = data['service_name'].value_counts().reset_index()
+    requests_by_service_type.columns = ['service_name', 'count']
+    requests_by_service_type = requests_by_service_type.sort_values('count', ascending=False)
 
-    # if st.checkbox('Show Word Cloud of Request Descriptions'):
-    #     st.header("Word Cloud of Service Request Descriptions")
-    #     generate_word_cloud(data)
+    chart = alt.Chart(requests_by_service_type).mark_bar().encode(
+        y=alt.Y('count:Q', title='Number of Requests'),
+        x=alt.X('service_name:N', title='Service Type', sort='-y')  # Sort bars based on the count
+    ).properties(
+        width=alt.Step(20)  # Adjust the step width for bar thickness
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+
+    if st.checkbox('Show Word Cloud'):
+        generate_word_cloud(data, column='description')
 if __name__ == "__main__":
     main()
+#check
