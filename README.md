@@ -4,7 +4,7 @@
 
 The City of Bloomington Service Request Dashboard is an advanced web application designed to analyze and visualize service request data from the City of Bloomington. This interactive dashboard is developed as part of a master's project in data visualization, using a dataset that has undergone extensive exploratory data analysis (EDA) and cleaning processes.
 
-Website link: [Click here](https://dashboardofbloomington.streamlit.app/)
+> ### 🌐 **[Visit the Website](https://dashboardofbloomington.streamlit.app/)**
 
 ## Data Source and Preparation
 
