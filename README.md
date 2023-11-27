@@ -4,12 +4,14 @@
 
 The City of Bloomington Service Request Dashboard is an advanced web application designed to analyze and visualize service request data from the City of Bloomington. This interactive dashboard is developed as part of a master's project in data visualization, using a dataset that has undergone extensive exploratory data analysis (EDA) and cleaning processes.
 
+Website link: [Click here](https://dashboardofbloomington.streamlit.app/)
+
 ## Data Source and Preparation
 
-- **Original Dataset URL**: Data obtained from Bloomington's Open311 system.
+- **Original Dataset URL**: Data obtained from Bloomington's Open311 system. The dataset can be accessed [here](https://bloomington.data.socrata.com/dataset/Open311/aw6y-t4ix).
 - **Data Cleaning and EDA**: Performed in a Jupyter notebook, enhancing data quality by addressing inconsistencies, missing values, and outliers.
 - **Cleaned Dataset**: 'Cleaned_Open311.csv' with 111K rows and 17 columns, including fields like service_request_id, requested_datetime, updated_datetime, closed_date, status_description, and service_name.
-- **Service Report Page**: Bloomington uReport for public access to service requests.
+- **Service Report Page**: Bloomington uReport for public access to service requests. [Link](https://bloomington.in.gov/ureport/)
 
 ## Key Features
 
@@ -24,6 +26,12 @@ The City of Bloomington Service Request Dashboard is an advanced web application
 
 - **Python Libraries**: Streamlit, Pandas, Numpy, PyDeck, Matplotlib, Altair, WordCloud, and Datetime.
 - **Data Analysis and Cleaning**: Conducted in a Jupyter notebook using Python.
+
+## Website Images
+![Dashboard Screenshot](.images\initalPage.png)
+![Heatmaop](.images\heatmap.png)
+![Temporal Analysis Screenshot](.images\temporal.png)
+![WordCloud Screenshot](.images\wordcloud.png)
 
 ## Application Structure
 
