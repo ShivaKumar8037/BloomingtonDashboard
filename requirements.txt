@@ -5,3 +5,4 @@ pydeck
 altair
 matplotlib
 wordcloud
+seaborn
