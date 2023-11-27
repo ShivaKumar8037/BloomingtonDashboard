@@ -28,10 +28,10 @@ Website link: [Click here](https://dashboardofbloomington.streamlit.app/)
 - **Data Analysis and Cleaning**: Conducted in a Jupyter notebook using Python.
 
 ## Website Images
-![Dashboard Screenshot](.images/initalPage.png)
-![Heatmaop](.images/heatmap.png)
-![Temporal Analysis Screenshot](.images/temporal.png)
-![WordCloud Screenshot](.images/wordcloud.png)
+![Dashboard Screenshot](./images/initalPage.png)
+![Heatmap](./images/heatmap.png)
+![Temporal Analysis Screenshot](./images/temporal.png)
+![WordCloud Screenshot](./images/wordcloud.png)
 
 ## Application Structure
 
